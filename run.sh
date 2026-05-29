@@ -163,11 +163,24 @@ help() {
 EOF
 }
 
+check_if_fuse_available() {
+    # Check if fuse-overlayfs is installed
+    if command -v fuse-overlayfs &> /dev/null
+    then
+        echo -e "$GREEN[INFO]$NC: fuse-overlayfs is installed..."
+    else
+        echo -e "$RED[ERROR]$NC: fuse-overlayfs is not installed..."
+        echo -e "$YELLOW[ACTION]$NC: Please install fuse-overlayfs..."
+        exit 1
+    fi
+}
+
 thread() {
     # the __main__ function
     case $1 in 
         -i)
             echo -e "$YELLOW[INFO]$NC: Installing user systemd..."
+            check_if_fuse_available
             check_and_deploy
             spawn_user_systemd
             ;; 
