@@ -1,0 +1,22 @@
+# This is a unit that is supposed to address the Android SDK Access in
+# the OS running via BTRFS, or any COW-implemented Filesystem
+#
+# However, this unit should only be executed with --user flag.
+# Not recommended for global execution.
+
+[Unit]
+Description=FUSE OverlayFS for Android SDK
+ConditionPathExists=/opt/android-sdk
+
+[Service]
+Type=forking
+# Ensure the target directories exist before trying to mount
+ExecStartPre=/usr/bin/mkdir -p %h/.local/android/.sdk/upper %h/.local/android/.sdk/work %h/.local/android/sdk
+# Mount the overlay using systemd specifiers (%h = home, %U = UID, %G = GID)
+ExecStart=/usr/bin/fuse-overlayfs -o squash_to_uid=%U,squash_to_gid=%G,lowerdir=/opt/android-sdk,upperdir=%h/.local/android/.sdk/upper,workdir=%h/.local/android/.sdk/work %h/.local/android/sdk
+# Clean unmount on stop/shutdown
+ExecStop=/usr/bin/fusermount -u %h/.local/android/sdk
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
