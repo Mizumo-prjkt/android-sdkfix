@@ -153,6 +153,16 @@ remove() {
     systemctl --user daemon-reload
     echo -e "$GREEN[INFO]$NC: Successfully stopped and removed user systemd..."
     echo -e "$GREEN[INFO]$NC: Done!!!"
+    # We should also clean the export from bashrc
+    echo -e "$YELLOW[ACTION]$NC: Cleaning bashrc..."
+    sed -i "/$STRINGS/d" $BASHRC_TARGET
+    if [ $? -eq 0 ]
+    then
+        echo -e "$GREEN[INFO]$NC: Successfully cleaned bashrc..."
+    else
+        echo -e "$RED[ERROR]$NC: Failed to clean bashrc..."
+        exit 1
+    fi
 }
 
 help() {
