@@ -23,11 +23,11 @@ sudo pacman -S fuse-overlayfs
 ### Install
 
 ```bash
-sudo ./run.sh -i
+./run.sh -i
 ```
 
 ### Uninstall
 
 ```bash
-sudo ./run.sh -r
+./run.sh -r
 ```
