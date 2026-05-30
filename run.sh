@@ -2,10 +2,12 @@
 
 # Files and Directories
 SERVICE="android_sdk_overlay.service"
-TARGET="~/.config/systemd/user/android_sdk_overlay.service"
+TARGET="/home/$USER/.config/systemd/user/android_sdk_overlay.service"
+DIR_TARGET="/home/$USER/.config/systemd/user"
+CONFIG_DIR="/home/$USER/.config/"
 
 # .bashrc configuration for android sdk
-BASHRC_TARGET="~/.bashrc"
+BASHRC_TARGET="/home/$USER/.bashrc"
 
 STRINGS="""
 
@@ -30,30 +32,30 @@ copy() {
 }
 
 check_and_deploy() {
-    if [ -d "$SYSTEMD_USERDIR" ]
+    if [ ! -d "$DIR_TARGET" ]
     then
-        echo -e "$YELLOW[ACTION]$NC: Copying SDK service..."
-        copy
-        if [ $? -eq 0 ]
-        then
-            echo -e "$GREEN[INFO]$NC: Copied SDK service..."
-        else
-            echo -e "$RED[ERROR]$NC: Failed to copy SDK service..."
-            identify_problem -nc
-        fi
-        echo -e "$YELLOW[APPLY ENV]$NC: Applying the environment variables for android sdk..."
-        echo "$STRINGS" >> $BASHRC_TARGET
-        if [ $? -eq 0 ]
-        then
-            echo -e "$GREEN[INFO]$NC: Applied environment variables..."
-        else
-            echo -e "$RED[ERROR]$NC: Failed to apply environment variables..."
-            identify_problem -env
-        fi
-    else
         echo -e "$RED[ERROR]$NC: Systemd user directory not found..."
         echo -e "$YELLOW[ACTION]$NC: Investigating..."
         identify_problem --ns
+    fi
+    
+    echo -e "$YELLOW[ACTION]$NC: Copying SDK service..."
+    copy
+    if [ $? -eq 0 ]
+    then
+        echo -e "$GREEN[INFO]$NC: Copied SDK service..."
+    else
+        echo -e "$RED[ERROR]$NC: Failed to copy SDK service..."
+        identify_problem -nc
+    fi
+    echo -e "$YELLOW[APPLY ENV]$NC: Applying the environment variables for android sdk..."
+    echo "$STRINGS" >> $BASHRC_TARGET
+    if [ $? -eq 0 ]
+    then
+        echo -e "$GREEN[INFO]$NC: Applied environment variables..."
+    else
+        echo -e "$RED[ERROR]$NC: Failed to apply environment variables..."
+        identify_problem -env
     fi
 }
 
@@ -62,13 +64,13 @@ identify_problem() {
     if [ "$1" == "--ns" ]
     then
         # Lets check for a possible missing systemd user
-        if [ -d "~/.config/systemd/user" ]
+        if [ -d "$DIR_TARGET" ]
         then
             echo -e "$GREEN[INFO]$NC: Systemd user directory found..."
         else
             echo -e "$RED[ERROR]$NC: Systemd user directory not found..."
             echo -e "$YELLOW[ACTION]$NC: Creating systemd user directory..."
-            mkdir -p "~/.config/systemd/user"
+            mkdir -p "$DIR_TARGET"
             if [ $? -eq 0 ]
             then
                 echo -e "$GREEN[INFO]$NC: Systemd user directory created..."
@@ -78,14 +80,14 @@ identify_problem() {
                 exit 1
             fi
         fi
-    else if [ "$1" == "-nc" ]
+    elif [ "$1" == "-nc" ]; then
         # Find if android_sdk_overlay.service exists in our current position...
         if [ -d "$(pwd)/$SERVICE" ]
         then
             echo -e "$GREEN[INFO]$NC: Service file found... "
             echo -e "Still Strange why it isn't located at $TARGET"
             # Check permissions we have on .config directory
-            if [ -w "~/.config/" ]
+            if [ -w "$CONFIG_DIR" ]
             then
                 echo -e "$GREEN[INFO]$NC: Write permissions on .config directory..."
                 echo -e "$GREEN[INFO]$NC: Advise to redo the whole thing"
@@ -101,7 +103,7 @@ identify_problem() {
             echo -e "$YELLOW[ACTION]$NC: Please run this script with sudo..."
             exit 1
         fi
-    else if [ "$1" == "-env" ]
+    elif [ "$1" == "-env" ]; then
         # Check if bashrc exists...
         if [ -f "$BASHRC_TARGET" ]
         then
