@@ -161,6 +161,7 @@ help() {
     Options:
         -i    Install user systemd
         -r    Remove user systemd
+        -s    Check Status
     
 EOF
 }
@@ -175,6 +176,11 @@ check_if_fuse_available() {
         echo -e "$YELLOW[ACTION]$NC: Please install fuse-overlayfs..."
         exit 1
     fi
+}
+
+status() {
+    echo -e "$YELLOW[INFO]$NC: Checking status of user systemd..."
+    systemctl --user status $SERVICE
 }
 
 thread() {
@@ -192,6 +198,10 @@ thread() {
             ;; 
         -h | --help)
             help
+            exit
+            ;;
+        -s)
+            status
             exit
             ;;
         *)
